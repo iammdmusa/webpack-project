@@ -1,4 +1,8 @@
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const  { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const path =  require("path");
+
 let mode = "development";
 let target = "web";
 if(process.env.NODE_ENV === "production"){
@@ -8,14 +12,37 @@ if(process.env.NODE_ENV === "production"){
 module.exports = {
     mode: mode,
     target: target,
+    output: {
+        path: path.resolve(__dirname, "build"),
+        assetModuleFilename: "images/[hash][ext][query]",
+    },
     module: {
         rules:[
             {
-                test: /\.(s[ac|c])ss$/i,
-                use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader", "sass-loader"],
+                test: /\.(png|jpe?g|gif|webp|svg)$/i,
+                type: "asset",
+                // type: "asset/resource",
+                // type: "asset/inline",
+                // parser:{
+                //     dataUrlCondition: {
+                //         maxSize: 30*1024,
+                //     },
+                // },
             },
             {
-                test: /\.js$/,
+                test: /\.(s[ac|c])ss$/i,
+                use: [
+                    {
+                        loader: MiniCssExtractPlugin.loader,
+                        options: { publicPath: "" },
+                    }, 
+                    "css-loader", 
+                    "postcss-loader", 
+                    "sass-loader"
+                ],
+            },
+            {
+                test: /\.jsx?$/,
                 exclude: /node_modules/,
                 use:{
                     loader: "babel-loader"
@@ -23,7 +50,16 @@ module.exports = {
             }
         ]
     },
-    plugins: [ new MiniCssExtractPlugin()],
+    plugins: [ 
+        new CleanWebpackPlugin(),
+        new MiniCssExtractPlugin(), 
+        new HtmlWebpackPlugin({
+            template: "./public/index.html"
+        })
+    ],
+    resolve: {
+        extensions: [".js", ".jsx"],
+    },
     devtool: "source-map",
     devServer: {
         contentBase: "./dist/",
